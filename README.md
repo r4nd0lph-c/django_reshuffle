@@ -1,2 +1,1 @@
-# django_reshuffle
-RESHUFFLE
+# RESHUFFLE
