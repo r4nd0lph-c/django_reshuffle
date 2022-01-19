@@ -1,0 +1,62 @@
+{% extends "reshuffle/main_template.html" %}
+
+{% load static %}
+
+
+{% block content %}
+    <main class="container mb-4" data-aos="zoom-in" data-aos-duration="300">
+        {% if redirect_info is not none %}
+            <p class="fs-3 mt-5">
+                {{ redirect_info.0 }}
+                <b>{{ redirect_info.1 }}</b>
+                {{ redirect_info.2 }}
+            </p>
+
+            <p class="text-secondary">Желаете скачать архив?</p>
+
+            <div class="form-center">
+                <a href="{% url 'download_archive' %}" class="w-100 btn btn-lg btn-primary mt-3 mb-lg-5">
+                    Скачать
+                </a>
+            </div>
+        {% else %}
+            {% if is_cleaning %}
+                <p class="fs-3">
+                    Здесь пусто...
+                </p>
+
+                <p class="text-secondary  mb-lg-5">
+                    За последние
+                    <b>{{ archive_lifetime }} ч.</b>
+                    вы не создавали архивов
+                </p>
+            {% else %}
+                <p class="fs-3 mt-5">
+                    Ваш прошлый архив
+                    <b>[{{ time_create }}]</b>
+                </p>
+
+                <p class="text-secondary">
+                    До автоматического удаления архива из системы осталось:
+                    <b>{{ time_left }}</b>
+                </p>
+
+                <div class="form-center">
+                    <a href="{% url 'download_archive' %}" class="w-100 btn btn-lg btn-primary mt-3 mb-lg-5">
+                        Скачать
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </main>
+{% endblock %}
+
+
+{% block footer %}
+    <div>
+        <p class="mx-1">
+            {{ footertext.label }}
+            <a href="{% url 'index' %}">{{ footertext.link }}</a>
+        </p>
+    </div>
+{% endblock %}

@@ -1,0 +1,61 @@
+<style>
+    .latex-style {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+
+        padding: 5px 6px;
+        margin-top: 0;
+
+        color: var(--body-fg);
+        background-color: var(--body-bg);
+
+        min-height: 39px;
+        min-width: 175px;
+        max-width: 70%;
+    }
+</style>
+
+<textarea name="{{ widget.name }}" style="display:none;" {% include "reshuffle/widgets/attrs.html" %}>
+    {% if widget.value %} {{ widget.value }} {% endif %}
+</textarea>
+
+
+<a class="btn btn-primary me-1 align-self-center" data-bs-toggle="modal" data-bs-target="#help_modal">?</a>
+
+<!-- modal with info START -->
+<div class="modal fade" id="help_modal" tabindex="-1" aria-labelledby="help_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="help_modal_label">Помощь по LaTex оформлению</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modal with info END -->
+
+<span id="input-field" class="latex-style fs-5">
+    {% if widget.value %} {{ widget.value }} {% endif %}
+</span>
+
+<script>
+    var mathFieldSpan = document.getElementById('input-field');
+    var latexSpan = document.getElementById('id_latex'); // hide field
+
+    var MQ = MathQuill.getInterface(2); // for backcompat
+    var mathField = MQ.MathField(mathFieldSpan, {
+        spaceBehavesLikeTab: true, // configurable
+        handlers: {
+            edit: function () { // useful event handlers
+                latexSpan.textContent = mathField.latex(); // simple API
+            }
+        }
+    });
+</script>

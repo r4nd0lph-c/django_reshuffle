@@ -1,0 +1,139 @@
+{% extends "reshuffle/main_template.html" %}
+
+{% load static %}
+
+
+{% block content %}
+    <!-- catch form errors START -->
+    <div class="my-lg-4 mx-4">
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-warning" data-aos="zoom-in" data-aos-duration="300">{{ error }}</div>
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+            <div class="alert alert-warning" data-aos="zoom-in" data-aos-duration="300">
+                Вы вошли в систему как {{ user }}, однако у вас недостаточно прав для просмотра данной страницы.
+                Возможно, вы хотели бы войти в систему, используя другую учётную запись?
+            </div>
+        {% endif %}
+    </div>
+
+    {% for f in form %}
+        <div class="my-lg-4 mx-4">
+            {% for error in f.errors %}
+                <div class="alert alert-warning" data-aos="zoom-in" data-aos-duration="300">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <!-- catch form errors END -->
+
+    <main class="form-center">
+        <!-- form START -->
+        <form method="post">
+            {% csrf_token %}
+
+            <h1 class="h3 mb-4 fw-normal">Вход</h1>
+
+            {% for f in form %}
+                {% if f.label != "Пароль" %}
+                    {% if f.label != "Запомнить меня?" %}
+                        <div class="form-floating mb-2" style="text-align: left !important;">
+                            {{ f }}
+                            <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+                        </div>
+                    {% else %}
+                        <style>
+                            .form-check .form-check-input {
+                                float: none;
+                                margin-left: 0;
+                                padding-left: 0;
+                            }
+                        </style>
+                        <div class="form-check mt-4" style="padding-left: 0 !important;">
+                            {{ f }}
+                            <label class="form-check-label" for="{{ f.id_for_label }}">
+                                {{ f.label }}
+                            </label>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <style>
+                        .form-floating-group input {
+                            border-bottom-right-radius: 0;
+                            border-top-right-radius: 0;
+                        }
+
+                        .input-group-text {
+                            cursor: pointer;
+                            background-color: #ffffff;
+                        }
+                    </style>
+                    <div class="input-group mb-2">
+                        <div class="form-floating form-floating-group flex-grow-1">
+                            {{ f }}
+                            <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+                        </div>
+                        <span class="input-group-text" id="eye_span" onclick="pass_visibility()">
+                            <i class="bi bi-eye" id="eye_icon" style="color: #ced4da;"></i>
+                        </span>
+                    </div>
+                    <script>
+                        function pass_visibility() {
+                            let pass_in = document.getElementById("id_password");
+                            let eye_icon = document.getElementById("eye_icon");
+
+                            if (pass_in.type === "password") {
+                                pass_in.type = "text";
+                                eye_icon.className = "bi bi-eye-slash";
+                            } else {
+                                pass_in.type = "password";
+                                eye_icon.className = "bi bi-eye";
+                            }
+                        }
+
+                        let pass_in = document.getElementById("id_password");
+                        let eye_span = document.getElementById("eye_span");
+
+                        pass_in.addEventListener("focusin", (event) => {
+                            eye_span.style.border = "1px solid #86b7fe";
+                        });
+
+                        pass_in.addEventListener("focusout", (event) => {
+                            eye_span.style.border = "1px solid #ced4da";
+                        });
+                    </script>
+                {% endif %}
+            {% endfor %}
+
+            <button class="w-100 btn btn-lg btn-primary mt-4 mb-5" type="submit">Авторизация</button>
+        </form>
+        <!-- form END -->
+    </main>
+{% endblock %}
+
+
+{% block footer %}
+    <div>
+        <p>
+            <a class="mx-1" data-bs-toggle="modal" data-bs-target="#feedback_modal">
+                {{ footertext }}
+            </a>
+        </p>
+    </div>
+
+    <!-- modal with info START -->
+    <div class="modal fade" id="feedback_modal" tabindex="-1" aria-labelledby="feedback_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedback_modal_label">Обратная связь</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- modal with info END -->
+{% endblock %}

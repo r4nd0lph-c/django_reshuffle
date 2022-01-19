@@ -1,0 +1,93 @@
+{% extends "reshuffle/main_template.html" %}
+
+{% load static %}
+
+
+{% block content %}
+    <!-- catch form errors START -->
+    <div class="my-lg-4 mx-4">
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-warning" data-aos="zoom-in" data-aos-duration="300">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    {% for f in form %}
+        <div class="my-lg-4 mx-4">
+            {% for error in f.errors %}
+                <div class="alert alert-warning" data-aos="zoom-in" data-aos-duration="300">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <!-- catch form errors END -->
+
+    <main class="form-center">
+        <!-- overlay loading START -->
+        <div id="overlay" style="display: none;">
+            <div class="overlay-block">
+                <div class="spinner-border text-primary m-3" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="fs-4">Идёт подготовка вариантов</p>
+                <p class="fs-4">Ожидайте...</p>
+            </div>
+        </div>
+        <!-- overlay loading END -->
+
+        <!-- form START -->
+        <form method="post">
+            {% csrf_token %}
+
+            {% for f in form %}
+                <div class="mb-4">
+                    {% if f.id_for_label == "id_amount" %}
+                        <label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>
+                        <output class="fw-bold">{{ form.amount_min }}</output>
+                    {% else %}
+                        <label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>
+                    {% endif %}
+                    {{ f }}
+                </div>
+            {% endfor %}
+
+            <button class="w-100 btn btn-lg btn-primary mt-2 mb-lg-5" type="submit" onclick="validation()">
+                Создать
+            </button>
+        </form>
+        <!-- form END -->
+    </main>
+
+    <script>
+        /*
+        * extra validation for input values from form;
+        * this need for showing overlay.
+        */
+        function validation() {
+            // 0 <= extra_val <= max - min
+            const extra_val = 4;
+
+            let overlay = document.getElementById("overlay");
+
+            let subject_form = document.getElementById("id_subject");
+            let is_subject = subject_form.options[subject_form.selectedIndex].value.length;
+
+            let amount_form = document.getElementById("id_amount");
+            let value = Number(amount_form.value);
+            let min = Number(amount_form.min);
+            let max = Number(amount_form.max);
+
+            if (is_subject && value >= min + extra_val && value <= max) {
+                overlay.style.display = "block";
+            }
+        }
+    </script>
+{% endblock %}
+
+
+{% block footer %}
+    <div>
+        <p class="mx-1">
+            {{ footertext.label }}
+            <a href="{% url 'index' %}">{{ footertext.link }}</a>
+        </p>
+    </div>
+{% endblock %}
