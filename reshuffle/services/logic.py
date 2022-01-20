@@ -312,6 +312,7 @@ def main(cleaned_data, username):
     os.mkdir(os.path.join(DOCS_ROOT, create_date))  # create new tmp directory
     os.mkdir(os.path.join(DOCS_ROOT, create_date, FOLDER_NAME_Q))  # nested directories
     os.mkdir(os.path.join(DOCS_ROOT, create_date, FOLDER_NAME_A))  # nested directories
+
     if not os.path.exists(os.path.join(DOCS_ROOT, username)):
         os.mkdir(os.path.join(DOCS_ROOT, username))  # create if not exist user's directory for archive
 
