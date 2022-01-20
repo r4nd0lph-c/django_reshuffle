@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
@@ -47,6 +46,8 @@ class TasksAdmin(admin.ModelAdmin):
     list_display_links = ('id',)
     list_filter = ('subject_fk',)
     search_fields = ('=num',)
+    search_help_text = 'Поиск выполняется по номеру задания в тесте \
+                        (для более точного результата вы можете использовать фильтры)'
 
     formfield_overrides = {
         LatexField: {'widget': LatexInput},
@@ -77,6 +78,7 @@ class OptionsAdmin(admin.ModelAdmin):
     list_display_links = ('id',)
     list_filter = ('task_fk__subject_fk',)
     search_fields = ('task_fk__id',)
+    search_help_text = 'Поиск выполняется по id задания, к которому относятся ответы'
     raw_id_fields = ('task_fk',)
 
     # autocomplete_fields = ['task_fk']
