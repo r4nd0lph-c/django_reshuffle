@@ -20,6 +20,8 @@ DOCS_ROOT = os.path.join(MEDIA_ROOT, 'docs')
 MML2OMML_ROOT = os.path.join(MEDIA_ROOT, 'MML2OMML')
 
 ARCHIVE_NAME = 'reshuffle_tasks'
+FOLDER_NAME_Q = 'задания'
+FOLDER_NAME_A = 'ответы'
 ARCHIVE_LIFETIME = 24  # hours
 
 NULL_ITEM = None
@@ -170,7 +172,8 @@ def create_docx_question(subject, data, create_date):
     # -----
 
     document.save(
-        '{}\\{}\\{}_{}_задания.docx'.format(DOCS_ROOT, create_date, subject.case_nominative, data['unique_key']))
+        '{}\\{}\\{}\\{}_{}_задания.docx'.format(DOCS_ROOT, create_date, FOLDER_NAME_Q,
+                                                subject.case_nominative, data['unique_key']))
 
 
 def create_docx_answer(subject, data, create_date):
@@ -256,7 +259,8 @@ def create_docx_answer(subject, data, create_date):
     # -----
 
     document.save(
-        '{}\\{}\\{}_{}_ответы.docx'.format(DOCS_ROOT, create_date, subject.case_nominative, data['unique_key']))
+        '{}\\{}\\{}\\{}_{}_ответы.docx'.format(DOCS_ROOT, create_date, FOLDER_NAME_A,
+                                               subject.case_nominative, data['unique_key']))
 
 
 def variant_data(tasks_queryset, n):
@@ -303,9 +307,11 @@ def main(cleaned_data, username):
     RESULT: create new archives with .docx files
     """
 
-    create_date = datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f')
+    create_date = datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f')  # future name of tmp directory
 
     os.mkdir(os.path.join(DOCS_ROOT, create_date))  # create new tmp directory
+    os.mkdir(os.path.join(DOCS_ROOT, create_date, FOLDER_NAME_Q))  # nested directories
+    os.mkdir(os.path.join(DOCS_ROOT, create_date, FOLDER_NAME_A))  # nested directories
     if not os.path.exists(os.path.join(DOCS_ROOT, username)):
         os.mkdir(os.path.join(DOCS_ROOT, username))  # create if not exist user's directory for archive
 
