@@ -55,31 +55,6 @@
         </form>
         <!-- form END -->
     </main>
-
-    <script>
-        /*
-        * extra validation for input values from form;
-        * this need for showing overlay.
-        */
-        function validation() {
-            // 0 <= extra_val <= max - min
-            const extra_val = 4;
-
-            let overlay = document.getElementById("overlay");
-
-            let subject_form = document.getElementById("id_subject");
-            let is_subject = subject_form.options[subject_form.selectedIndex].value.length;
-
-            let amount_form = document.getElementById("id_amount");
-            let value = Number(amount_form.value);
-            let min = Number(amount_form.min);
-            let max = Number(amount_form.max);
-
-            if (is_subject && value >= min + extra_val && value <= max) {
-                overlay.style.display = "block";
-            }
-        }
-    </script>
 {% endblock %}
 
 

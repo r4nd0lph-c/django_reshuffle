@@ -77,31 +77,6 @@
                             <i class="bi bi-eye" id="eye_icon" style="color: #ced4da;"></i>
                         </span>
                     </div>
-                    <script>
-                        function pass_visibility() {
-                            let pass_in = document.getElementById("id_password");
-                            let eye_icon = document.getElementById("eye_icon");
-
-                            if (pass_in.type === "password") {
-                                pass_in.type = "text";
-                                eye_icon.className = "bi bi-eye-slash";
-                            } else {
-                                pass_in.type = "password";
-                                eye_icon.className = "bi bi-eye";
-                            }
-                        }
-
-                        let pass_in = document.getElementById("id_password");
-                        let eye_span = document.getElementById("eye_span");
-
-                        pass_in.addEventListener("focusin", (event) => {
-                            eye_span.style.border = "1px solid #86b7fe";
-                        });
-
-                        pass_in.addEventListener("focusout", (event) => {
-                            eye_span.style.border = "1px solid #ced4da";
-                        });
-                    </script>
                 {% endif %}
             {% endfor %}
 
