@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.contrib.auth.models import Group
 
 from reshuffle.fields import LatexField
 
@@ -52,3 +53,13 @@ class Options(models.Model):
         verbose_name = 'Вариант ответа'
         verbose_name_plural = 'Варианты ответов'
         ordering = ['task_fk', 'id']
+
+
+class SubjAccess(models.Model):
+    group_id = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name='Ключ группы')
+    subject_fk = models.ForeignKey(Subjects, on_delete=models.CASCADE, verbose_name='Ключ предмета')
+
+    class Meta:
+        verbose_name = 'Право доступа группы к предмету'
+        verbose_name_plural = 'Права доступа'
+        ordering = ['group_id']
