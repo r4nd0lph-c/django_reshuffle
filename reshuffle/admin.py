@@ -134,8 +134,8 @@ def subj_access_list(groups):
 
 
 class SubjAccessAdmin(admin.ModelAdmin):
-    list_display = ('id', 'group_id', 'subject_fk')
-    list_display_links = ('id',)
+    list_display = ('group_id', 'subject_fk')
+    list_display_links = ('group_id',)
 
 
 admin.site.register(Subjects, SubjectsAdmin)

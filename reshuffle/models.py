@@ -59,6 +59,9 @@ class SubjAccess(models.Model):
     group_id = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name='Ключ группы')
     subject_fk = models.ForeignKey(Subjects, on_delete=models.CASCADE, verbose_name='Ключ предмета')
 
+    def __str__(self):
+        return str(self.id)
+
     class Meta:
         verbose_name = 'Право доступа группы к предмету'
         verbose_name_plural = 'Права доступа'
