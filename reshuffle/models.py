@@ -1,6 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 
 from reshuffle.fields import LatexField
 
@@ -66,3 +66,18 @@ class SubjAccess(models.Model):
         verbose_name = 'Право доступа группы к предмету'
         verbose_name_plural = 'Права доступа'
         ordering = ['group_id']
+
+
+class ArchiveLogs(models.Model):
+    action_time = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время')
+    username = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    archive_info = models.CharField(max_length=255, verbose_name='Архив')
+    action = models.CharField(max_length=255, verbose_name='Действие')
+
+    def __str__(self):
+        return str(self.action_time)
+
+    class Meta:
+        verbose_name = 'Элемент журнала'
+        verbose_name_plural = 'Журнал действий'
+        ordering = ['-action_time']

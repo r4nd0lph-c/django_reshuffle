@@ -6,6 +6,7 @@
 {% block content %}
     <main class="container mb-4" data-aos="zoom-in" data-aos-duration="300">
         {% if redirect_info is not none %}
+            <!-- fresh download START -->
             <p class="fs-3 mt-5">
                 {{ redirect_info.0 }}
                 <b>{{ redirect_info.1 }}</b>
@@ -19,8 +20,10 @@
                     Скачать
                 </a>
             </div>
+            <!-- fresh download END -->
         {% else %}
             {% if is_cleaning %}
+                <!-- empty download START -->
                 <p class="fs-3">
                     Здесь пусто...
                 </p>
@@ -30,7 +33,9 @@
                     <b>{{ archive_lifetime }} ч.</b>
                     вы не создавали архивов
                 </p>
+                <!-- empty download END -->
             {% else %}
+                <!-- old download START -->
                 <p class="fs-3 mt-5">
                     Ваш прошлый архив
                     <b>[{{ time_create }}]</b>
@@ -46,6 +51,7 @@
                         Скачать
                     </a>
                 </div>
+                <!-- old download END -->
             {% endif %}
         {% endif %}
     </main>

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from reshuffle.models import Subjects
+from reshuffle.models import Subjects, ArchiveLogs
 from reshuffle.services import logic
 
 
@@ -26,6 +26,12 @@ class CreationForm(forms.Form):
                                     attrs={'type': 'range', 'class': 'form-range',
                                            'oninput': 'this.previousElementSibling.value = this.value',
                                            'value': amount_min, 'min': amount_min, 'max': amount_max}))
+
+    @staticmethod
+    def add_logs_creation(user, arch_info):
+        ArchiveLogs.objects.create(username=user,
+                                   archive_info='Архив по {} [{}]'.format(arch_info['subj'], arch_info['amount']),
+                                   action='Создание')
 
     def logic(self, username):
         logic.main(self.cleaned_data, username)

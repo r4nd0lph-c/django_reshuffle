@@ -70,8 +70,6 @@ class Creation(LoginRequiredMixin, FormView):
     template_name = 'reshuffle/creation.html'
     login_url = reverse_lazy('auth')
 
-    # success_url = reverse_lazy('download')
-
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Создание вариантов | RESHUFFLE'
@@ -81,10 +79,11 @@ class Creation(LoginRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        form.logic(self.request.user.username)
-        # return super().form_valid(form)
         self.request.session['redirect_info'] = {'subj': form.cleaned_data['subject'].case_dative,
                                                  'amount': form.cleaned_data['amount']}
+        form.add_logs_creation(self.request.user, self.request.session['redirect_info'])
+        form.logic(self.request.user.username)
+
         return redirect(reverse_lazy('download'))
 
 
@@ -134,6 +133,7 @@ class Download(LoginRequiredMixin, TemplateView):
         if 'redirect_info' in self.request.session:
             subj = self.request.session['redirect_info']['subj']
             amount = self.request.session['redirect_info']['amount']
+            self.request.session['download_info'] = {'subj': subj, 'amount': amount}
             del self.request.session['redirect_info']
 
             redirect_info = ['Создан{}'.format('' if str(amount)[-1] == '1' and amount != 11 else 'о'), amount,
@@ -146,8 +146,20 @@ class Download(LoginRequiredMixin, TemplateView):
 
 def download_archive(request):
     """ download archive function that returns last created (with this user) archive """
+    subj = '???'
+    amount = '???'
+
+    if 'download_info' in request.session:
+        subj = request.session['download_info']['subj']
+        amount = request.session['download_info']['amount']
+
+    ArchiveLogs.objects.create(username=request.user,
+                               archive_info='Архив по {} [{}]'.format(subj, amount),
+                               action='Скачивание')
+
     archive = os.path.join(DOCS_ROOT, request.user.username, ARCHIVE_NAME + '.zip')
     response = FileResponse(open(archive, 'rb'))
+
     return response
 
 

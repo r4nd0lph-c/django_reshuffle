@@ -1,9 +1,13 @@
 from django.contrib import admin
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 
 from .views import *
 from .models import *
 from .widgets import LatexInput
+
+import csv
 
 
 # Register your models here.
@@ -138,10 +142,34 @@ class SubjAccessAdmin(admin.ModelAdmin):
     list_display_links = ('group_id',)
 
 
+class ArchiveLogsAdmin(admin.ModelAdmin):
+    list_display = ('action_time', 'username', 'archive_info', 'action')
+    list_display_links = ('action_time',)
+    list_filter = (('username', admin.RelatedOnlyFieldListFilter),)
+    actions = ['download_csv']
+
+    # add calc datetime filter: 'last day' 'last week' etc...
+
+    @admin.action(description='Скачать элементы (если выбрано 0, то скачается весь журнал) в формате CSV')
+    def download_csv(self, request, queryset):
+        print(queryset)
+        # add logic
+
+    def changelist_view(self, request, extra_context=None):
+        if 'action' in request.POST and request.POST['action'] == 'download_csv':
+            if not request.POST.getlist(ACTION_CHECKBOX_NAME):
+                post = request.POST.copy()
+                for u in ArchiveLogs.objects.all():
+                    post.update({ACTION_CHECKBOX_NAME: str(u.id)})
+                request._set_post(post)
+        return super(ArchiveLogsAdmin, self).changelist_view(request, extra_context)
+
+
 admin.site.register(Subjects, SubjectsAdmin)
 admin.site.register(Tasks, TasksAdmin)
 admin.site.register(Options, OptionsAdmin)
 admin.site.register(SubjAccess, SubjAccessAdmin)
+admin.site.register(ArchiveLogs, ArchiveLogsAdmin)
 
 admin.site.site_title = 'RESHUFFLE'
 admin.site.site_header = 'RESHUFFLE'
