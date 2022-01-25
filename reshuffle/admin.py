@@ -1,12 +1,14 @@
 from django.contrib import admin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.http import HttpResponse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from .views import *
 from .models import *
 from .widgets import LatexInput
 
+from datetime import timedelta
 import csv
 
 
@@ -142,13 +144,40 @@ class SubjAccessAdmin(admin.ModelAdmin):
     list_display_links = ('group_id',)
 
 
+class ArchiveLogsDateFilter(admin.SimpleListFilter):
+    title = 'Прошедшее время'
+    parameter_name = 'action_date'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('last_day', 'Меньше суток'),
+            ('last_three_days', 'Меньше трёх дней'),
+            ('last_week', 'Меньше недели'),
+        )
+
+    def queryset(self, request, queryset):
+        timestamps = {
+            'last_day': 1,
+            'last_three_days': 3,
+            'last_week': 7
+        }
+        if self.value() is not None:
+            start_date = timezone.now() - timedelta(days=timestamps[self.value()])
+            return queryset.filter(action_time__gte=start_date)
+        return queryset
+
+
 class ArchiveLogsAdmin(admin.ModelAdmin):
     list_display = ('action_time', 'username', 'archive_info', 'action')
-    list_display_links = ('action_time',)
-    list_filter = (('username', admin.RelatedOnlyFieldListFilter),)
+    list_display_links = None
+    list_filter = (('username', admin.RelatedOnlyFieldListFilter), ArchiveLogsDateFilter)
     actions = ['download_csv']
 
-    # add calc datetime filter: 'last day' 'last week' etc...
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     @admin.action(description='Скачать элементы (если выбрано 0, то скачается весь журнал) в формате CSV')
     def download_csv(self, request, queryset):
