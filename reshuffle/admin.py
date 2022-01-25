@@ -133,11 +133,10 @@ class OptionsAdmin(admin.ModelAdmin):
 
 def subj_access_list(groups):
     access_list = []
-    if groups:
-        for group in groups:
-            qs = SubjAccess.objects.filter(group_id=group.id)
-            for item in qs:
-                access_list.append(item.subject_fk_id)
+    for group in groups:
+        qs = SubjAccess.objects.filter(group_id=group.id)
+        for item in qs:
+            access_list.append(item.subject_fk_id)
     return access_list
 
 
