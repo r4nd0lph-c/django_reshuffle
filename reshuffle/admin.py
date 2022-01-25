@@ -9,7 +9,9 @@ from .models import *
 from .widgets import LatexInput
 
 from datetime import timedelta
-import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 
 # Register your models here.
@@ -171,7 +173,7 @@ class ArchiveLogsAdmin(admin.ModelAdmin):
     list_display = ('action_time', 'username', 'archive_info', 'action')
     list_display_links = None
     list_filter = (('username', admin.RelatedOnlyFieldListFilter), ArchiveLogsDateFilter)
-    actions = ['download_csv']
+    actions = ['download_logs']
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -179,13 +181,62 @@ class ArchiveLogsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    @admin.action(description='Скачать элементы (если выбрано 0, то скачается весь журнал) в формате CSV')
-    def download_csv(self, request, queryset):
-        print(queryset)
-        # add logic
+    @admin.action(description='Скачать элементы (если выбрано 0, то скачается весь журнал) в формате XLSX')
+    def download_logs(self, request, queryset):
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', )
+        response['Content-Disposition'] = 'attachment; filename=logs_{date}.xlsx'.format(
+            date=datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f'))
+
+        workbook = Workbook()
+
+        # Get active worksheet/tab
+        worksheet = workbook.active
+        worksheet.title = 'Журнал действий'
+
+        # Define the titles for columns
+        columns = [
+            ArchiveLogs._meta.get_field('action_time').verbose_name.upper(),
+            ArchiveLogs._meta.get_field('username').verbose_name.upper(),
+            ArchiveLogs._meta.get_field('archive_info').verbose_name.upper(),
+            ArchiveLogs._meta.get_field('action').verbose_name.upper()
+        ]
+
+        for i in range(len(columns)):
+            column_letter = get_column_letter(i + 1)
+            column_dimensions = worksheet.column_dimensions[column_letter]
+            column_dimensions.width = 32 if i == 2 else 16
+
+        row_num = 1
+
+        # Assign the titles for each cell of the header
+        for col_num, column_title in enumerate(columns, 1):
+            cell = worksheet.cell(row=row_num, column=col_num)
+            cell.value = column_title
+            cell.font = Font(bold=True)
+
+        # Iterate through all movies
+        for item in queryset:
+            row_num += 1
+
+            # Define the data for each cell in the row
+            row = [
+                item.action_time.strftime('%d.%m.%Y %H:%M'),
+                item.username.username,
+                item.archive_info,
+                item.action
+            ]
+
+            # Assign the data for each cell of the row
+            for col_num, cell_value in enumerate(row, 1):
+                cell = worksheet.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        workbook.save(response)
+
+        return response
 
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] == 'download_csv':
+        if 'action' in request.POST and request.POST['action'] == 'download_logs':
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 for u in ArchiveLogs.objects.all():
