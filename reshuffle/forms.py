@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from reshuffle.models import Subjects, ArchiveLogs
+from reshuffle.models import Subjects, ArchiveLogs, SubjAccess
 from reshuffle.services import logic
 
 
@@ -16,10 +16,30 @@ class AuthForm(AuthenticationForm):
                                          attrs={'class': 'form-check-input me-1', 'type': 'checkbox'}))
 
 
+def get_subj_queryset(user):
+    qs = Subjects.objects.all()
+    groups = user.groups.all()
+    if not groups.exists() or user.is_superuser:
+        return qs
+    else:
+        access_list = []
+        for group in groups:
+            qs_subj = SubjAccess.objects.filter(group_id=group.id)
+            for item in qs_subj:
+                access_list.append(item.subject_fk_id)
+        return qs.filter(id__in=access_list)
+
+
 class CreationForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.qs_subj = get_subj_queryset(self.user)
+        super(CreationForm, self).__init__(*args, **kwargs)
+        self.fields['subject'].queryset = self.qs_subj
+
     amount_min = 1
     amount_max = 100
-    subject = forms.ModelChoiceField(queryset=Subjects.objects.all(), label='Предмет', empty_label='Выберите предмет',
+    subject = forms.ModelChoiceField(queryset=None, label='Предмет', empty_label='Выберите предмет',
                                      widget=forms.Select(attrs={'class': 'form-select custom_padding'}))
     amount = forms.IntegerField(label='Количество вариантов', min_value=amount_min, max_value=amount_max,
                                 widget=forms.NumberInput(

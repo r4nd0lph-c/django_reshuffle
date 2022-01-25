@@ -67,6 +67,12 @@ class Creation(LoginRequiredMixin, FormView):
 
     form_class = CreationForm
 
+    # Sending user object to the form, to verify which fields to display/remove (depending on group)
+    def get_form_kwargs(self):
+        kwargs = super(Creation, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
     template_name = 'reshuffle/creation.html'
     login_url = reverse_lazy('auth')
 
