@@ -168,7 +168,7 @@ def create_docx_question(subject, data, create_date):
                         r = task.add_run()
                         r.add_picture(opt.image)
                     task.add_run('\n')
-                task.add_run('\n')
+                # task.add_run('\n')
     # -----
 
     document.save(

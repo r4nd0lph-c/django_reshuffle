@@ -19,7 +19,7 @@ class Subjects(models.Model):
 
     class Meta:
         verbose_name = 'Предмет'
-        verbose_name_plural = 'Предметы'
+        verbose_name_plural = '[3] Предметы'
         ordering = ['id']
 
 
@@ -35,7 +35,7 @@ class Tasks(models.Model):
 
     class Meta:
         verbose_name = 'Задание'
-        verbose_name_plural = 'Задания'
+        verbose_name_plural = '[1] Задания'
         ordering = ['subject_fk', 'num']
 
 
@@ -51,7 +51,7 @@ class Options(models.Model):
 
     class Meta:
         verbose_name = 'Вариант ответа'
-        verbose_name_plural = 'Варианты ответов'
+        verbose_name_plural = '[2] Варианты ответов'
         ordering = ['task_fk', 'id']
 
 
@@ -63,8 +63,8 @@ class SubjAccess(models.Model):
         return str(self.id)
 
     class Meta:
-        verbose_name = 'Право доступа группы к предмету'
-        verbose_name_plural = 'Права доступа'
+        verbose_name = 'Право доступа к каталогу'
+        verbose_name_plural = '[4] Права доступа к каталогу'
         ordering = ['group_id']
 
 
@@ -79,5 +79,5 @@ class ArchiveLogs(models.Model):
 
     class Meta:
         verbose_name = 'Элемент журнала'
-        verbose_name_plural = 'Журнал действий'
+        verbose_name_plural = '[5] Журнал действий'
         ordering = ['-action_time']

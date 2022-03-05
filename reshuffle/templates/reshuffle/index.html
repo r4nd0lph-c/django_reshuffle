@@ -5,6 +5,8 @@
 
 {% block content %}
     <main class="container mb-4">
+        <p class="mb-4">Посмотреть последний созданный <a href="{% url 'download' %}">архив</a></p>
+
         <div class="row row-cols-1 row-cols-md-2 g-4">
 
             <!-- 1 card START -->
@@ -13,11 +15,10 @@
                     <div class="card-body">
                         <h5 class="card-title my-4 mx-2">Создать варианты</h5>
                         <p class="card-text mb-4 mx-2">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet tempor dui. Sed
-                            sed posuere justo. Vestibulum et massa viverra, pretium massa ac, cursus tellus. Ut
-                            fringilla neque a eros gravida, quis bibendum felis vehicula. Maecenas consectetur sem non
-                            efficitur tempus. Sed facilisis pharetra mi. Cras ut euismod nisi. Praesent auctor eu quam
-                            in consectetur.
+                            В данном разделе вы сможете создать архив вариантов. Экземпляр одного варианта кодируется
+                            уникальным номером и состоит из двух файлов: файл заданий и файл ответов. Файлы заданий и
+                            ответов распределены в соответствующие папки в архиве. Обратите внимание, что создавать
+                            архивы вы можете только по тем предметам, доступ к которым предоставил вам администратор.
                         </p>
                     </div>
                     <a href="{% url 'creation' %}" class="btn btn-lg btn-primary w-50 align-self-center mb-4">
@@ -32,8 +33,11 @@
                     <div class="card-body">
                         <h5 class="card-title my-4 mx-2">Изменить каталог заданий</h5>
                         <p class="card-text mb-4 mx-2">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet tempor dui. Sed
-                            sed posuere justo.
+                            В данном разделе вы сможете просматривать и изменять каталог заданий – добавлять,
+                            редактировать и удалять задания и ответы к ним. Для этого предусмотрены формы, которые
+                            поддерживают ввод обычного текста, формул и загрузку изображений. Обратите внимание, что
+                            вышеописанный функционал вам доступен только для тех предметов, доступ к которым предоставил
+                            вам администратор.
                         </p>
                     </div>
                     {% if user.is_staff %}
