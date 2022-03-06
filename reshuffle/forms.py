@@ -38,12 +38,13 @@ class CreationForm(forms.Form):
         self.fields['subject'].queryset = self.qs_subj
 
     amount_min = 1
-    amount_max = 100
+    amount_max = 300
     subject = forms.ModelChoiceField(queryset=None, label='Предмет', empty_label='Выберите предмет',
                                      widget=forms.Select(attrs={'class': 'form-select custom_padding'}))
-    amount = forms.IntegerField(label='Количество вариантов', min_value=amount_min, max_value=amount_max,
+    amount = forms.IntegerField(label='Количество вариантов:',
+                                min_value=amount_min, max_value=amount_max,
                                 widget=forms.NumberInput(
-                                    attrs={'type': 'range', 'class': 'form-range',
+                                    attrs={'type': 'number', 'class': 'form-control custom_padding',
                                            'oninput': 'this.previousElementSibling.value = this.value',
                                            'value': amount_min, 'min': amount_min, 'max': amount_max}))
 

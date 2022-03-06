@@ -28,7 +28,7 @@
                     <span class="visually-hidden">Loading...</span>
                 </div>
                 <p class="fs-4">Идёт подготовка вариантов</p>
-                <p class="fs-4">Ожидайте...</p>
+                <p class="fs-4">Это может занять пару минут, ожидайте...</p>
             </div>
         </div>
         <!-- overlay loading END -->
@@ -41,10 +41,12 @@
                 <div class="mb-4">
                     {% if f.id_for_label == "id_amount" %}
                         <label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>
-                        <output class="fw-bold">{{ form.amount_min }}</output>
+                        <span class="fw-bold">{{ form.amount_min }}-{{ form.amount_max }}</span>
+                        {#                        <output class="fw-bold">{{ form.amount_min }}</output>#}
                     {% else %}
                         <label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>
                     {% endif %}
+                    {#<label for="{{ f.id_for_label }}" class="form-label">{{ f.label }}</label>#}
                     {{ f }}
                 </div>
             {% endfor %}

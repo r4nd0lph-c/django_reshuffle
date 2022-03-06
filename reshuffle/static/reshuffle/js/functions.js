@@ -21,7 +21,7 @@ function pass_visibility() {
 // this need for showing overlay.
 function validation() {
     // 0 <= extra_val <= max - min
-    const extra_val = 4;
+    const extra_val = 7;
 
     let overlay = document.getElementById("overlay");
 
