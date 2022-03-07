@@ -123,9 +123,6 @@ def create_docx_question(subject, data, create_date):
     test_form.bold = True
     test_form.font.size = Pt(13)
 
-    space = head.add_run('\n')
-    space.font.size = Pt(13)
-
     variant_num = head.add_run('Вариант № ' + data['unique_key'] + '\n')
     variant_num.bold = True
     variant_num.font.size = Pt(13)
@@ -133,15 +130,57 @@ def create_docx_question(subject, data, create_date):
     space = head.add_run('\n')
     space.font.size = Pt(12)
 
+    # header (title, text) add
+    header = subject.header
+    if header:
+        h_title = head.add_run(header['title'] + '\n')
+        h_title.bold = True
+        head.add_run(header['text'])
+        space = head.add_run('\n')
+        space.font.size = Pt(12)
+    # -------------------------
+
     # FILL QUESTION-DOC.docx WITH INFO FUNCTION
     n_len = len(str(len(data['body'])))
-
     num = 0
+
+    # prepare to gen char-num
+    def add_part(p_i, j):
+        new_part = document.add_paragraph()
+        new_part.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_title = new_part.add_run('\nЧасть ' + p_i[j][0] + '\n')
+        p_title.bold = True
+        new_part.add_run(p_i[j][3] + '\n')
+
+    accum = 0
+    jumper = 0
+    parts_info = []
+    parts = subject.parts
+    if parts:
+        max_k = -1
+        for key in parts.keys():
+            if parts[key]['number'] > max_k:
+                max_k = parts[key]['number']
+            parts_info.append((key, parts[key]['number'], parts[key]['number'] + accum, parts[key]['help_text']))
+            accum += parts[key]['number']
+        n_len = len(str(max_k))
+        add_part(parts_info, jumper)
+    # -------------------------
+
     for item in data['body']:
         num += 1
+        # gen char-num
+        char_num = str(num).zfill(n_len)
+        if parts:
+            if not (parts_info[jumper][2] - parts_info[jumper][1] <= num <= parts_info[jumper][2]):
+                jumper += 1
+                add_part(parts_info, jumper)
+            char_num = '{}{}'.format(parts_info[jumper][0],
+                                     str(num + parts_info[jumper][1] - parts_info[jumper][2]).zfill(n_len))
+        # -------------------------
         if item != NULL_ITEM:
             task = document.add_paragraph()
-            task.add_run('[' + str(num).zfill(n_len) + '] ').bold = True
+            task.add_run('[' + char_num + '] ').bold = True
             task.add_run(item['task'].text + '\n')
 
             if item['task'].latex != '':
@@ -168,8 +207,7 @@ def create_docx_question(subject, data, create_date):
                         r = task.add_run()
                         r.add_picture(opt.image)
                     task.add_run('\n')
-                # task.add_run('\n')
-    # -----
+    # --------------------------------------------------
 
     document.save(
         '{}\\{}\\{}\\{}_{}_задания.docx'.format(DOCS_ROOT, create_date, FOLDER_NAME_Q,
@@ -211,12 +249,35 @@ def create_docx_answer(subject, data, create_date):
 
     rows_count = n // cols_count * 2
 
+    # prepare to gen char-num
+    accum = 0
+    jumper = 0
+    parts_info = []
+    parts = subject.parts
+    if parts:
+        max_k = -1
+        for key in parts.keys():
+            if parts[key]['number'] > max_k:
+                max_k = parts[key]['number']
+            parts_info.append((key, parts[key]['number'], parts[key]['number'] + accum, parts[key]['help_text']))
+            accum += parts[key]['number']
+        n_len = len(str(max_k))
+    # -------------------------
     # Table data in a form of list
     data_table = []
     for i in range(0, rows_count // 2):
         row = []
         for j in range(0, cols_count):
-            row.append('Задание ' + str(i * cols_count + j + 1).zfill(n_len))
+            # gen char-num
+            num = i * cols_count + j + 1
+            char_num = str(num).zfill(n_len)
+            if parts:
+                if not (parts_info[jumper][2] - parts_info[jumper][1] <= num <= parts_info[jumper][2]):
+                    jumper += 1
+                char_num = '{}{}'.format(parts_info[jumper][0],
+                                         str(num + parts_info[jumper][1] - parts_info[jumper][2]).zfill(n_len))
+            # -------------------------
+            row.append('Задание ' + char_num)
         data_table.append(row)
 
         row = []
@@ -256,7 +317,7 @@ def create_docx_answer(subject, data, create_date):
 
     # Adding style to a table
     table.style = 'Table Grid'
-    # -----
+    # --------------------------------------------------
 
     document.save(
         '{}\\{}\\{}\\{}_{}_ответы.docx'.format(DOCS_ROOT, create_date, FOLDER_NAME_A,
