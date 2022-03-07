@@ -13,13 +13,15 @@ class Subjects(models.Model):
     case_dative = models.CharField(max_length=32, verbose_name='Дательный падеж')
     tasks_number = models.SmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(100)],
                                             verbose_name='Количество заданий в варианте')
+    parts = models.JSONField(blank=True, null=True, verbose_name="Деление на части")
+    header = models.JSONField(blank=True, null=True, verbose_name="Общая инструкция")
 
     def __str__(self):
         return str(self.case_nominative)
 
     class Meta:
         verbose_name = 'Предмет'
-        verbose_name_plural = '[3] Предметы'
+        verbose_name_plural = '[#3] Предметы'
         ordering = ['id']
 
 
@@ -35,7 +37,7 @@ class Tasks(models.Model):
 
     class Meta:
         verbose_name = 'Задание'
-        verbose_name_plural = '[1] Задания'
+        verbose_name_plural = '[#1] Задания'
         ordering = ['subject_fk', 'num']
 
 
@@ -51,7 +53,7 @@ class Options(models.Model):
 
     class Meta:
         verbose_name = 'Вариант ответа'
-        verbose_name_plural = '[2] Варианты ответов'
+        verbose_name_plural = '[#2] Варианты ответов'
         ordering = ['task_fk', 'id']
 
 
@@ -64,7 +66,7 @@ class SubjAccess(models.Model):
 
     class Meta:
         verbose_name = 'Право доступа к каталогу'
-        verbose_name_plural = '[4] Права доступа к каталогу'
+        verbose_name_plural = '[#4] Права доступа к каталогу'
         ordering = ['group_id']
 
 
@@ -79,5 +81,5 @@ class ArchiveLogs(models.Model):
 
     class Meta:
         verbose_name = 'Элемент журнала'
-        verbose_name_plural = '[5] Журнал действий'
+        verbose_name_plural = '[#5] Журнал действий'
         ordering = ['-action_time']

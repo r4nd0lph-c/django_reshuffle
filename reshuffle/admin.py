@@ -16,9 +16,76 @@ from openpyxl.utils import get_column_letter
 
 # Register your models here.
 
+class SubjectsForm(forms.ModelForm):
+    def clean(self):
+        PARTS_ENTITY_EXAMPLE = {'number': 0, 'help_text': ''}
+        if 'parts' in self.cleaned_data:
+            parts = self.cleaned_data['parts']
+            if parts is not None:
+                if type(parts) is dict:
+                    if len(parts.keys()) != 0:
+                        for code in parts.keys():
+                            part_body = parts[code]
+                            if type(part_body) is dict:
+                                if sorted(part_body.keys()) == sorted(PARTS_ENTITY_EXAMPLE.keys()):
+                                    for key in part_body.keys():
+                                        if not isinstance(part_body[key], type(PARTS_ENTITY_EXAMPLE[key])):
+                                            types = {int: 'целочисленные', str: 'строковые'}
+                                            type_line = types.get(type(PARTS_ENTITY_EXAMPLE[key]), 'определённые')
+                                            raise forms.ValidationError({'parts': 'Поле ({}) может содержать \
+                                            только {} значения.'.format(key, type_line)})
+                                else:
+                                    raise forms.ValidationError({'parts': 'Содержимое части ({}) может состоять \
+                                    только из {{"number": ЦЕЛ. ЧИСЛО (кол-во заданий в части), \
+                                    "help_text": "ОПИСАНИЕ ЧАСТИ"}}'.format(code)})
+                            else:
+                                raise forms.ValidationError({'parts': 'Введите корректный JSON. \
+                                Структура: {"НАИМЕНОВАНИЕ ЧАСТИ": {"number": ЦЕЛ. ЧИСЛО (кол-во заданий в части), \
+                                "help_text": "ОПИСАНИЕ ЧАСТИ"}, ...}'})
+                    else:
+                        raise forms.ValidationError({'parts': 'Введите корректный JSON. \
+                        Структура: {"НАИМЕНОВАНИЕ ЧАСТИ": {"number": ЦЕЛ. ЧИСЛО (кол-во заданий в части), \
+                        "help_text": "ОПИСАНИЕ ЧАСТИ"}, ...}'})
+                    num = 0
+                    for key in parts.keys():
+                        if parts[key]['number'] > 0:
+                            num += parts[key]['number']
+                        else:
+                            raise forms.ValidationError({'parts': 'Вы ввели недопустимое количество заданий ({}) \
+                            в части ({}). Исправьте это и попробуйте снова.'.format(parts[key]['number'], key)})
+                    if num != self.cleaned_data['tasks_number']:
+                        raise forms.ValidationError({'parts': 'Сумма заданий каждой части ({}) \
+                        не равняется общему количеству заданий ({}). \
+                        Убедитесь, что вы ввели правильные значения и попробуйте снова.'.format(
+                            num, self.cleaned_data['tasks_number'])})
+                else:
+                    raise forms.ValidationError({'parts': 'Введите корректный JSON.'})
+
+        HEADER_ENTITY_EXAMPLE = {'title': '', 'text': ''}
+        if 'header' in self.cleaned_data:
+            header = self.cleaned_data['header']
+            if header is not None:
+                if type(header) is dict:
+                    if len(header.keys()) != 0:
+                        for key in header.keys():
+                            if sorted(header.keys()) == sorted(HEADER_ENTITY_EXAMPLE.keys()):
+                                if not isinstance(header[key], type(HEADER_ENTITY_EXAMPLE[key])):
+                                    raise forms.ValidationError({'header': 'Поле ({}) может содержать \
+                                    только строковые значения.'.format(key)})
+                            else:
+                                raise forms.ValidationError({'header': 'Введите корректный JSON. \
+                                Структура: {"title": "НАЗВАНИЕ ЗАГОЛОВКА", "text": "СОДЕРЖИМОЕ ЗАГОЛОВКА"}'})
+                    else:
+                        raise forms.ValidationError({'header': 'Введите корректный JSON. \
+                        Структура: {"title": "НАЗВАНИЕ ЗАГОЛОВКА", "text": "СОДЕРЖИМОЕ ЗАГОЛОВКА"}'})
+                else:
+                    raise forms.ValidationError({'header': 'Введите корректный JSON.'})
+
 
 class SubjectsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'case_nominative', 'tasks_number')
+    form = SubjectsForm
+
+    list_display = ('id', 'case_nominative', 'tasks_number', 'parts', 'header')
     list_display_links = ('id', 'case_nominative')
 
 
