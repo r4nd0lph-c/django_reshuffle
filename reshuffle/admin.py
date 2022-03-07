@@ -125,7 +125,7 @@ class TasksForm(forms.ModelForm):
 class TasksAdmin(admin.ModelAdmin):
     form = TasksForm
 
-    list_display = ('id', 'subject_fk', 'num', 'text', 'latex', 'get_html_img')
+    list_display = ('id', 'subject_fk', 'get_pretty_num', 'text', 'latex', 'get_html_img')
     list_display_links = ('id',)
     list_filter = (('subject_fk', admin.RelatedOnlyFieldListFilter),)
     search_fields = ('=num',)
@@ -148,6 +148,20 @@ class TasksAdmin(admin.ModelAdmin):
         form = super(TasksAdmin, self).get_form(request, *args, **kwargs)
         form.request = request
         return form
+
+    def get_pretty_num(self, object):
+        parts = object.subject_fk.parts
+        num = object.num
+        accum = 0
+        if parts:
+            for key in parts.keys():
+                accum += parts[key]['number']
+                if num <= accum:
+                    return mark_safe('{} ({}{})'.format(num, key, num - accum + parts[key]['number']))
+        else:
+            return mark_safe(num)
+
+    get_pretty_num.short_description = 'Номер задания в тесте'
 
     def get_html_img(self, object):
         if object.image:
