@@ -83,6 +83,21 @@
             <button class="w-100 btn btn-lg btn-primary mt-4 mb-5" type="submit">Авторизация</button>
         </form>
         <!-- form END -->
+
+        <!-- form field script START -->
+        <script type="text/javascript">
+            let pass_in = document.getElementById("id_password");
+            let eye_span = document.getElementById("eye_span");
+
+            pass_in.addEventListener("focusin", (event) => {
+                eye_span.style.border = "1px solid #86b7fe";
+            });
+
+            pass_in.addEventListener("focusout", (event) => {
+                eye_span.style.border = "1px solid #ced4da";
+            });
+        </script>
+    <!-- form field script END -->
     </main>
 {% endblock %}
 
@@ -112,7 +127,8 @@
                     <p><b>Адрес электронной почты:</b> <a href="mailto:priem@mospolytech.ru">priem@mospolytech.ru</a>
                     </p>
                     <p class="mt-4">
-                        Служба технической поддержки работает по рабочему графику с <b>09:30</b> до <b>20:00</b> в будние дни.
+                        Служба технической поддержки работает по рабочему графику с <b>09:30</b> до <b>20:00</b> в
+                        будние дни.
                     </p>
                 </div>
             </div>
