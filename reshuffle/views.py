@@ -171,28 +171,6 @@ def download_archive(request):
 
 def get_subj_info(request):
     """ function returns subject info (parts model.JSONfield)"""
-    # response = {'subjects': []}
-    # for subj in Subjects.objects.all():
-    #     subj_obj = {'title': subj.case_nominative}
-    #     if type(subj.parts) is dict:
-    #         subj_obj['parts'] = []
-    #         for key in subj.parts.keys():
-    #             subj_obj['parts'].append({'name': key, 'count': subj.parts[key]['number']})
-    #     else:
-    #         subj_obj['parts'] = None
-    #     response['subjects'].append(subj_obj)
-
-    # response = {}
-    # for subj in Subjects.objects.all():
-    #     if type(subj.parts) is dict:
-    #         parts_list = []
-    #         for key in subj.parts.keys():
-    #             parts_list.append({'name': key, 'count': subj.parts[key]['number']})
-    #         response[subj.case_nominative] = parts_list
-    #     else:
-    #         response[subj.case_nominative] = None
-    # return JsonResponse(response)
-
     response = {}
     for subj in Subjects.objects.all():
         if type(subj.parts) is dict:
