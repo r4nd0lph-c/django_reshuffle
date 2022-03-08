@@ -1,0 +1,93 @@
+<div>
+    <input class="vIntegerField me-2" type="{{ widget.type }}" name="{{ widget.name }}" min="1"
+            {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}" {% endif %}
+            {% include "reshuffle/widgets/attrs.html" %}>
+    <span id="converted_num"></span>
+</div>
+
+<script type="text/javascript">
+    const input_subj = document.getElementById("id_subject_fk");
+    const input_num = document.getElementById("id_num");
+    const output_converted = document.getElementById("converted_num");
+
+    let response_json = null;
+
+    function get_response_json() {
+        $.ajax({
+            url: "{% url 'get_subj_info' %}",
+            success: function (response) {
+                response_json = response;
+                update(response_json);
+            },
+            error: function () {
+                console.log("request (subj info) ERROR");
+            }
+        });
+        return false;
+    }
+
+
+    function check_num(n, tasks_n) {
+        if (!Number.isInteger(n))
+            return {
+                "result": null,
+                "msg": "Номер задания может быть только <b>целым</b> числом."
+            };
+        if (n <= 0 || n > tasks_n)
+            return {
+                "result": null,
+                "msg": `Введённый номер задания находится вне допустимых границ [<b>1</b>; <b>${tasks_n}</b>].`
+            };
+        return {
+            "result": n,
+            "msg": `<b>Отображаемый номер задания:</b> ${n}`
+        };
+    }
+
+
+    function modify_num(n, tasks_n, parts) {
+        let res = check_num(n, tasks_n);
+        if (res["result"]) {
+            let accum = 0;
+            for (let element of parts) {
+                accum += element['count'];
+                if (n <= accum) {
+                    let mod_n = `${element['name']}${n - accum + element['count']}`;
+                    return {
+                        "result": mod_n,
+                        "msg": `<b>Отображаемый номер задания:</b> ${mod_n}`
+                    };
+                }
+            }
+        } else
+            return res;
+    }
+
+
+    function update(response) {
+        let num = +input_num.value;
+        let subj = input_subj.options[input_subj.selectedIndex].text;
+        if (response == null)
+            output_converted.innerHTML = "";
+        else if (response[subj] === undefined)
+            output_converted.innerHTML = '"Ключ предмета" не выбран.';
+        else {
+            let res;
+            if (response[subj]["parts"] == null) {
+                res = check_num(num, response[subj]["tasks_num"]);
+            } else {
+                res = modify_num(num, response[subj]["tasks_num"], response[subj]["parts"]);
+            }
+            output_converted.innerHTML = res["msg"];
+        }
+    }
+
+    get_response_json();
+
+    input_subj.addEventListener("change", function () {
+        update(response_json);
+    });
+    input_num.addEventListener("change", function () {
+        update(response_json);
+    });
+</script>

@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 
 from .views import *
 from .models import *
-from .widgets import LatexInput
+from .widgets import LatexInput, TestNumInput
 
 from datetime import timedelta
 from openpyxl import Workbook
@@ -134,6 +134,7 @@ class TasksAdmin(admin.ModelAdmin):
 
     formfield_overrides = {
         LatexField: {'widget': LatexInput},
+        TestNumField: {'widget': TestNumInput}
     }
 
     def get_queryset(self, request):

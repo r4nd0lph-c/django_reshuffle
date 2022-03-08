@@ -2,7 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import Group, User
 
-from reshuffle.fields import LatexField
+from reshuffle.fields import LatexField, TestNumField
 
 
 # Create your models here.
@@ -27,7 +27,7 @@ class Subjects(models.Model):
 
 class Tasks(models.Model):
     subject_fk = models.ForeignKey(Subjects, on_delete=models.CASCADE, verbose_name='Ключ предмета')
-    num = models.SmallIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name='Номер задания в тесте')
+    num = TestNumField(default=1, validators=[MinValueValidator(1)], verbose_name='Фактический номер задания')
     text = models.TextField(blank=True, verbose_name='Текст задания')
     latex = LatexField(blank=True, verbose_name='Формула (LaTeX)')
     image = models.ImageField(blank=True, upload_to='thumbnails_task/', verbose_name='Изображение')
