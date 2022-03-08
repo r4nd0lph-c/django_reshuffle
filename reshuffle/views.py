@@ -5,8 +5,8 @@ from datetime import datetime
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.http import HttpResponseNotFound, FileResponse, JsonResponse
-from django.shortcuts import redirect
+from django.http import FileResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, FormView
 
@@ -191,4 +191,6 @@ def logout_user(request):
 
 def page_not_found(request, exception):
     """ FBV for 404 error page """
-    return HttpResponseNotFound('<h1>Страница не найдена [404]</h1>')
+    response = render(request, 'reshuffle/404.html')
+    response.status_code = 404
+    return response
