@@ -12,6 +12,8 @@ from reshuffle.services import unique_key
 import docx
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT as WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.oxml.shared import OxmlElement
+from docx.oxml.ns import qn
 
 from lxml import etree
 import latex2mathml.converter
@@ -100,6 +102,27 @@ def docx_settings(document):
     return head
 
 
+def insert_hr(paragraph):
+    p = paragraph._p
+    pPr = p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    pPr.insert_element_before(pBdr,
+                              'w:shd', 'w:tabs', 'w:suppressAutoHyphens', 'w:kinsoku', 'w:wordWrap',
+                              'w:overflowPunct', 'w:topLinePunct', 'w:autoSpaceDE', 'w:autoSpaceDN',
+                              'w:bidi', 'w:adjustRightInd', 'w:snapToGrid', 'w:spacing', 'w:ind',
+                              'w:contextualSpacing', 'w:mirrorIndents', 'w:suppressOverlap', 'w:jc',
+                              'w:textDirection', 'w:textAlignment', 'w:textboxTightWrap',
+                              'w:outlineLvl', 'w:divId', 'w:cnfStyle', 'w:rPr', 'w:sectPr',
+                              'w:pPrChange'
+                              )
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '6')
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), 'auto')
+    pBdr.append(bottom)
+
+
 def create_docx_question(subject, data, create_date):
     """
     FUNCTION for creating one .docx question-file
@@ -112,9 +135,17 @@ def create_docx_question(subject, data, create_date):
     """
 
     document = docx.Document()
-    head = docx_settings(document)
 
-    head.add_run('МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РОССИЙСКОЙ ФЕДЕРАЦИИ\n').bold = True
+    # cutting part
+    cutting_part = document.add_paragraph()
+    cutting_part.add_run('Код: ').bold = True
+    cutting_part.add_run(data['unique_key'])
+    cutting_part.add_run('     ФИО:').bold = True
+    insert_hr(cutting_part)
+    # -----
+
+    head = docx_settings(document)
+    head.add_run('\nМИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РОССИЙСКОЙ ФЕДЕРАЦИИ\n').bold = True
     head.add_run('Федеральное государственное автономное образовательное учреждение\nвысшего образования\n')
     head.add_run('«МОСКОВСКИЙ ПОЛИТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ»\n')
     head.add_run('\n')
