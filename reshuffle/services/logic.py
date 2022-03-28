@@ -10,7 +10,7 @@ from reshuffle.models import *
 from reshuffle.services import unique_key
 
 import docx
-from docx.shared import Pt, Cm
+from docx.shared import Pt, Cm, Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT as WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.shared import OxmlElement
 from docx.oxml.ns import qn
@@ -86,8 +86,8 @@ def docx_settings(document):
     for section in sections:
         section.top_margin = Cm(2)
         section.bottom_margin = Cm(2)
-        section.left_margin = Cm(2.75)
-        section.right_margin = Cm(1.5)
+        section.left_margin = Cm(2)
+        section.right_margin = Cm(2)
 
     style = document.styles['Normal']
     font = style.font
@@ -119,7 +119,7 @@ def insert_hr(paragraph):
     bottom.set(qn('w:val'), 'single')
     bottom.set(qn('w:sz'), '6')
     bottom.set(qn('w:space'), '1')
-    bottom.set(qn('w:color'), 'auto')
+    bottom.set(qn('w:color'), 'gray')
     pBdr.append(bottom)
 
 
@@ -134,42 +134,62 @@ def create_docx_question(subject, data, create_date):
     RESULT: + one .docx question-file in directory
     """
 
-    document = docx.Document()
+    # create document from template
+    document = docx.Document(os.path.join(MEDIA_ROOT, 'template.docx'))
 
-    # cutting part
+    # personal num & cutting part
+    document._body.clear_content()
+
+    personal_num = document.add_paragraph()
+    personal_num.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    personal_num.alignment = 1
+
+    personal_num.add_run('Номер личного дела: ').bold = True
+    personal_num.add_run('__ ' * 9)
+
     cutting_part = document.add_paragraph()
-    cutting_part.add_run('Код: ').bold = True
+    cutting_part.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+
+    cutting_part.add_run('Дата: ').bold = True
+    date_list = create_date.split('_')
+    cutting_part.add_run('__.{}.{}'.format(date_list[1], date_list[0]))
+
+    cutting_part.add_run('     Код: ').bold = True
     cutting_part.add_run(data['unique_key'])
+
     cutting_part.add_run('     ФИО:').bold = True
+    cutting_part.add_run(' ' * 60 + 'Подпись:').bold = True
+
     insert_hr(cutting_part)
     # -----
 
-    head = docx_settings(document)
+    # head university & test info
+    head = document.add_paragraph()
+    head.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    head.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
     head.add_run('\nМИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РОССИЙСКОЙ ФЕДЕРАЦИИ\n').bold = True
     head.add_run('Федеральное государственное автономное образовательное учреждение\nвысшего образования\n')
-    head.add_run('«МОСКОВСКИЙ ПОЛИТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ»\n')
-    head.add_run('\n')
+    head.add_run('«МОСКОВСКИЙ ПОЛИТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ»\n\n')
 
-    test_form = head.add_run('Тест по ' + subject.case_dative + '\n')
-    test_form.bold = True
-    test_form.font.size = Pt(13)
+    test_info = head.add_run('Тест по ' + subject.case_dative + '\n' + 'Вариант № ' + data['unique_key'] + '\n\n\n')
+    test_info.bold = True
+    test_info.font.size = Pt(13)
+    # -----
 
-    variant_num = head.add_run('Вариант № ' + data['unique_key'] + '\n')
-    variant_num.bold = True
-    variant_num.font.size = Pt(13)
+    # code in header
+    for section in document.sections:
+        header = section.header
+        header.paragraphs[0].alignment = 1
+        header.paragraphs[0].text = data['unique_key']
+    # -----
 
-    space = head.add_run('\n')
-    space.font.size = Pt(12)
-
-    # header (title, text) add
-    header = subject.header
-    if header:
-        h_title = head.add_run(header['title'] + '\n')
-        h_title.bold = True
-        head.add_run(header['text'])
-        space = head.add_run('\n')
-        space.font.size = Pt(12)
-    # -------------------------
+    # general info add
+    general_info = subject.header
+    if general_info:
+        head.add_run(general_info['title'] + '\n').bold = True
+        head.add_run(general_info['text'] + '\n\n').italic = True
+    # -----
 
     # FILL QUESTION-DOC.docx WITH INFO FUNCTION
     n_len = len(str(len(data['body'])))
@@ -179,9 +199,8 @@ def create_docx_question(subject, data, create_date):
     def add_part(p_i, j):
         new_part = document.add_paragraph()
         new_part.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_title = new_part.add_run('\nЧасть ' + p_i[j][0] + '\n')
-        p_title.bold = True
-        new_part.add_run(p_i[j][3] + '\n')
+        new_part.add_run('Часть ' + p_i[j][0] + '\n').bold = True
+        new_part.add_run(p_i[j][3] + '\n').italic = True
 
     accum = 0
     jumper = 0
@@ -196,7 +215,7 @@ def create_docx_question(subject, data, create_date):
             accum += parts[key]['number']
         n_len = len(str(max_k))
         add_part(parts_info, jumper)
-    # -------------------------
+    # -----
 
     for item in data['body']:
         num += 1
@@ -208,11 +227,13 @@ def create_docx_question(subject, data, create_date):
                 add_part(parts_info, jumper)
             char_num = '{}{}'.format(parts_info[jumper][0],
                                      str(num + parts_info[jumper][1] - parts_info[jumper][2]).zfill(n_len))
-        # -------------------------
+        # -----
         if item != NULL_ITEM:
             task = document.add_paragraph()
-            task.add_run('[' + char_num + '] ').bold = True
-            task.add_run(item['task'].text + '\n')
+            n_text = task.add_run('[' + char_num + '] ')
+            n_text.bold = True
+            task_text = task.add_run(item['task'].text + '\n')
+            n_text.font.size, task_text.font.size = Pt(12), Pt(12)
 
             if item['task'].latex != '':
                 task.add_run(' ')
@@ -222,7 +243,7 @@ def create_docx_question(subject, data, create_date):
 
             if item['task'].image != '':
                 r = task.add_run()
-                r.add_picture(item['task'].image)
+                r.add_picture(item['task'].image, width=Inches(6))
                 task.add_run('\n')
 
             if len(item['options']) != 1:
@@ -238,11 +259,41 @@ def create_docx_question(subject, data, create_date):
                         r = task.add_run()
                         r.add_picture(opt.image)
                     task.add_run('\n')
-    # --------------------------------------------------
+    # ----- -----
 
+    # bottom part
+    insert_hr(document.paragraphs[-1])
+
+    bottom_part = document.add_paragraph()
+    bottom_part.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    bottom_part.add_run('\nОтмена ошибочных меток').bold = True
+
+    change_table = document.add_table(rows=1, cols=2)
+    table_heading = change_table.rows[0].cells
+    table_heading[0].paragraphs[0].text = 'Номер задания'
+    table_heading[1].paragraphs[0].text = 'Исправленный ответ'
+    for i in range(0, 5):
+        row = change_table.add_row().cells
+        row[0].text = '№ ____'
+        row[1].text = 'Отв. ____'
+    change_table.style = 'change_table_style'
+
+    exam_check = document.add_paragraph()
+    exam_check.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    exam_check.add_run('\n\nПроверка выполненной работы').bold = True
+
+    exam_table = document.add_table(rows=1, cols=2)
+    table_heading = exam_table.rows[0].cells
+    table_heading[0].paragraphs[0].text = 'Количество решенных задач:'
+    table_heading[1].paragraphs[0].text = 'Подпись экзаменатора:'
+    exam_table.style = 'exam_table_style'
+    # -----
+
+    # save document
     document.save(
         '{}\\{}\\{}\\{}_{}_задания.docx'.format(DOCS_ROOT, create_date, FOLDER_NAME_Q,
                                                 subject.case_nominative, data['unique_key']))
+    # -----
 
 
 def create_docx_answer(subject, data, create_date):
@@ -339,8 +390,11 @@ def create_docx_answer(subject, data, create_date):
     for data_row in data_table:
         row = table.rows[j].cells
         for i in range(0, cols_count):
-            p = row[i].add_paragraph(str(data_row[i]))
+            # p = row[i].add_paragraph(str(data_row[i]))
+            p = row[i].paragraphs[0]
+            p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.text = str(data_row[i])
             if j % 2 == 0:
                 run = p.runs[0]
                 run.font.bold = True
@@ -423,7 +477,7 @@ def main(cleaned_data, username):
                         'zip',
                         os.path.join(DOCS_ROOT, create_date))  # create new archive
 
-    shutil.rmtree(DOCS_ROOT + '/' + create_date)  # remove tmp directory with .docx files
+    shutil.rmtree(os.path.join(DOCS_ROOT, create_date))  # remove tmp directory with .docx files
 
 
 if __name__ == '__main__':
