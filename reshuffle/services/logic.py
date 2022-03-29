@@ -11,7 +11,7 @@ from reshuffle.services import unique_key
 
 import docx
 from docx.shared import Pt, Cm, Inches
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT as WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT as WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_BREAK
 from docx.oxml.shared import OxmlElement
 from docx.oxml.ns import qn
 
@@ -137,42 +137,36 @@ def create_docx_question(subject, data, create_date):
     # create document from template
     document = docx.Document(os.path.join(MEDIA_ROOT, 'template.docx'))
 
-    # personal num & cutting part
+    # cutting part
     document._body.clear_content()
 
-    personal_num = document.add_paragraph()
-    personal_num.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
-    personal_num.alignment = 1
+    university = document.add_paragraph()
+    university.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    university.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    university.add_run('\nМИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ\n').bold = True
+    university.add_run('Федеральное государственное автономное образовательное учреждение\nвысшего образования\n')
+    university.add_run('«МОСКОВСКИЙ ПОЛИТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ»\n')
 
-    personal_num.add_run('Номер личного дела: ').bold = True
-    personal_num.add_run('__ ' * 9)
+    code = document.add_paragraph()
+    code.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    code.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    code.add_run('Код: ' + data['unique_key']).bold = True
 
-    cutting_part = document.add_paragraph()
-    cutting_part.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+    entrant = document.add_paragraph()
+    entrant.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+    entrant.add_run('ФИО:  ' + '_' * 35 + ' ' * 76 + 'Подпись: ' + '_' * 6 + '\n').bold = True
+    entrant.add_run('Номер личного дела: ' + '__ ' * 9 + ' ' * 75 + 'Дата:  ').bold = True
+    entrant.add_run('__.__.{}'.format(create_date.split('_')[0]))
 
-    cutting_part.add_run('Дата: ').bold = True
-    date_list = create_date.split('_')
-    cutting_part.add_run('__.{}.{}'.format(date_list[1], date_list[0]))
-
-    cutting_part.add_run('     Код: ').bold = True
-    cutting_part.add_run(data['unique_key'])
-
-    cutting_part.add_run('     ФИО:').bold = True
-    cutting_part.add_run(' ' * 60 + 'Подпись:').bold = True
-
-    insert_hr(cutting_part)
+    insert_hr(entrant)
     # -----
 
-    # head university & test info
+    # test info
     head = document.add_paragraph()
     head.alignment = WD_ALIGN_PARAGRAPH.CENTER
     head.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    head.add_run('\nМИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РОССИЙСКОЙ ФЕДЕРАЦИИ\n').bold = True
-    head.add_run('Федеральное государственное автономное образовательное учреждение\nвысшего образования\n')
-    head.add_run('«МОСКОВСКИЙ ПОЛИТЕХНИЧЕСКИЙ УНИВЕРСИТЕТ»\n\n')
-
-    test_info = head.add_run('Тест по ' + subject.case_dative + '\n' + 'Вариант № ' + data['unique_key'] + '\n\n\n')
+    test_info = head.add_run('\nТест по ' + subject.case_dative + '\n' + 'Вариант № ' + data['unique_key'] + '\n\n')
     test_info.bold = True
     test_info.font.size = Pt(13)
     # -----
@@ -199,8 +193,19 @@ def create_docx_question(subject, data, create_date):
     def add_part(p_i, j):
         new_part = document.add_paragraph()
         new_part.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        new_part.add_run('Часть ' + p_i[j][0] + '\n').bold = True
+        part_run = new_part.add_run('Часть ' + p_i[j][0] + '\n')
+        part_run.bold = True
+        part_run.font.size = Pt(13)
         new_part.add_run(p_i[j][3] + '\n').italic = True
+
+    def add_after_part_info(p_i, j):
+        after_part = document.add_table(rows=1, cols=2)
+        table_heading = after_part.rows[0].cells
+        table_heading[0].paragraphs[0].text = 'Область отметок эксперта'
+        table_heading[1].width = Inches(7)
+        table_heading[1].paragraphs[0].text = 'Число правильно решенных задач в части {}: __'.format(p_i[j][0])
+        after_part.style = 'after_part_style'
+        document.add_paragraph().add_run('\n\n\n')
 
     accum = 0
     jumper = 0
@@ -223,6 +228,7 @@ def create_docx_question(subject, data, create_date):
         char_num = str(num).zfill(n_len)
         if parts:
             if not (parts_info[jumper][2] - parts_info[jumper][1] <= num <= parts_info[jumper][2]):
+                add_after_part_info(parts_info, jumper)
                 jumper += 1
                 add_part(parts_info, jumper)
             char_num = '{}{}'.format(parts_info[jumper][0],
@@ -259,19 +265,19 @@ def create_docx_question(subject, data, create_date):
                         r = task.add_run()
                         r.add_picture(opt.image, width=Inches(4))
                     task.add_run('\n')
+    if parts:
+        add_after_part_info(parts_info, jumper)
     # ----- -----
 
     # bottom part
-    insert_hr(document.paragraphs[-1])
-
     bottom_part = document.add_paragraph()
     bottom_part.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    bottom_part.add_run('\nОтмена ошибочных меток').bold = True
+    bottom_part.add_run('\nОтмена ошибочных меток (заполняется абитуриентом в случае ошибочного ответа)').bold = True
 
     change_table = document.add_table(rows=1, cols=2)
     table_heading = change_table.rows[0].cells
     table_heading[0].paragraphs[0].text = 'Номер задания'
-    table_heading[1].paragraphs[0].text = 'Исправленный ответ'
+    table_heading[1].paragraphs[0].text = 'Итоговый ответ'
     for i in range(0, 5):
         row = change_table.add_row().cells
         row[0].text = '№ ____'
@@ -280,13 +286,18 @@ def create_docx_question(subject, data, create_date):
 
     exam_check = document.add_paragraph()
     exam_check.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    exam_check.add_run('\n\nПроверка выполненной работы').bold = True
+    exam_check.add_run('\n\nПроверка выполненной работы (заполняется экспертом)').bold = True
 
     exam_table = document.add_table(rows=1, cols=2)
     table_heading = exam_table.rows[0].cells
-    table_heading[0].paragraphs[0].text = 'Количество решенных задач:'
-    table_heading[1].paragraphs[0].text = 'Подпись экзаменатора:'
+    table_heading[0].paragraphs[0].text = '\n\n\n\nОбщее количество правильно решенных задач (цифрой и прописью)'
+    table_heading[1].paragraphs[0].text = '\n\n\n\nПодпись экзаменатора'
     exam_table.style = 'exam_table_style'
+
+    ending = document.add_paragraph()
+    ending.add_run('\n\nДата:  ').bold = True
+    ending.add_run('__.__.{}'.format(create_date.split('_')[0]))
+    ending.add_run(' ' * 106 + 'Подпись абитуриента: ' + '_' * 6 + '\n').bold = True
     # -----
 
     # save document
