@@ -257,7 +257,7 @@ def create_docx_question(subject, data, create_date):
                         task._element.append(word_math)
                     if opt.image != '':
                         r = task.add_run()
-                        r.add_picture(opt.image)
+                        r.add_picture(opt.image, width=Inches(4))
                     task.add_run('\n')
     # ----- -----
 
