@@ -1,2 +1,8 @@
-# Secret info root
-secret_info/
+# ignore virtual environment
+/venv/
+
+#ignore IDE settings
+/.idea/
+
+# ignore secret info root
+/secret_info/
