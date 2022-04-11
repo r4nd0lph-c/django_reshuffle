@@ -119,14 +119,31 @@ ul.errorlist {
     height: 44px !important;
 }
 
-/*.dashboard #content {*/
-/*     width: auto;*/
-/*}*/
+@media (max-width: 336px) {
+    #content-main {
+        width: auto;
+    }
 
-/*.dashboard .colMS {*/
-/*     margin-right: 0px;*/
-/*}*/
+    h1 {
+        font-size: 18px;
+        margin-left: 6px;
+    }
 
-/*.dashboard #content {*/
-/*    padding: 20px 20em;*/
-/*}*/
+    .module a {
+        font-size: 10px !important;
+    }
+}
+
+@media (min-width: 900px) {
+    .dashboard #content {
+        padding: 20px 200px;
+    }
+}
+
+.dashboard #content {
+    width: auto;
+}
+
+.dashboard .colMS {
+    margin-right: 0;
+}
